@@ -1,33 +1,55 @@
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
 const hint = document.getElementById("hint");
+const noHome = { left: 0, top: 0, init: false };
+
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-function moveNoButton() {
-  const container = document.getElementById("card");
-  const padding = 16;
+function initNoHome() {
+  if (noHome.init) return;
 
-  // IMPORTANT: position relative container + absolute button
+  const container = document.getElementById("card");
   container.style.position = "relative";
   noBtn.style.position = "absolute";
 
-  const cRect = container.getBoundingClientRect();
-  const btnRect = noBtn.getBoundingClientRect();
+  // Use offsetLeft/offsetTop so the home position is in the card's coordinate system
+  noHome.left = noBtn.offsetLeft;
+  noHome.top  = noBtn.offsetTop;
+  noHome.init = true;
+}
 
-  const maxX = cRect.width - btnRect.width - padding;
-  const maxY = cRect.height - btnRect.height - padding;
+function moveNoButton() {
+  initNoHome();
 
-  const x = rand(padding, Math.max(padding, maxX));
-  const y = rand(padding, Math.max(padding, maxY));
+  const container = document.getElementById("card");
+  const padding = 8;
 
-  noBtn.style.left = `${x}px`;
-  noBtn.style.top = `${y}px`;
+  const cW = container.clientWidth;
+  const cH = container.clientHeight;
+
+  const bW = noBtn.offsetWidth;
+  const bH = noBtn.offsetHeight;
+
+  // Max movement from original position (2px as requested)
+  const maxMove = 2;
+
+  // Tiny jitter around the original spot (prevents drifting away over time)
+  const x = noHome.left + Math.floor(rand(-maxMove, maxMove + 1));
+  const y = noHome.top  + Math.floor(rand(-maxMove, maxMove + 1));
+
+  // Clamp so it can never leave the card
+  const clampedX = Math.min(Math.max(padding, x), cW - bW - padding);
+  const clampedY = Math.min(Math.max(padding, y), cH - bH - padding);
+
+  noBtn.style.left = `${clampedX}px`;
+  noBtn.style.top  = `${clampedY}px`;
 
   hint.textContent = "😛💩🤡";
 }
+
 
 ///   hint.textContent = "😛💩🤡";
 
