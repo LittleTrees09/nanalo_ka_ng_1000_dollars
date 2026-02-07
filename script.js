@@ -8,17 +8,26 @@ function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+const noHome = { left: 0, top: 0, init: false };
+
 function initNoHome() {
   if (noHome.init) return;
 
   const container = document.getElementById("card");
   container.style.position = "relative";
+
+  // Ensure No is absolutely positioned inside the card
   noBtn.style.position = "absolute";
 
-  // Use offsetLeft/offsetTop so the home position is in the card's coordinate system
+  // Record original position in card coords
   noHome.left = noBtn.offsetLeft;
   noHome.top  = noBtn.offsetTop;
+
   noHome.init = true;
+}
+
+function rectsOverlap(a, b) {
+  return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
 }
 
 function moveNoButton() {
@@ -27,29 +36,52 @@ function moveNoButton() {
   const container = document.getElementById("card");
   const padding = 8;
 
+  // How far No is allowed to move from its original spot
+  const maxMove = 20; // set to 2 if you truly want tiny movement
+
   const cW = container.clientWidth;
   const cH = container.clientHeight;
 
-  const bW = noBtn.offsetWidth;
-  const bH = noBtn.offsetHeight;
+  const noW = noBtn.offsetWidth;
+  const noH = noBtn.offsetHeight;
 
-  // Max movement from original position (2px as requested)
-  const maxMove = 2;
+  // We'll try a bunch of random jitters and pick one that doesn't overlap Yes
+  for (let i = 0; i < 60; i++) {
+    const x = noHome.left + Math.floor(rand(-maxMove, maxMove + 1));
+    const y = noHome.top  + Math.floor(rand(-maxMove, maxMove + 1));
 
-  // Tiny jitter around the original spot (prevents drifting away over time)
-  const x = noHome.left + Math.floor(rand(-maxMove, maxMove + 1));
-  const y = noHome.top  + Math.floor(rand(-maxMove, maxMove + 1));
+    // Clamp to card so it can't leave the card
+    const clampedX = Math.min(Math.max(padding, x), cW - noW - padding);
+    const clampedY = Math.min(Math.max(padding, y), cH - noH - padding);
 
-  // Clamp so it can never leave the card
-  const clampedX = Math.min(Math.max(padding, x), cW - bW - padding);
-  const clampedY = Math.min(Math.max(padding, y), cH - bH - padding);
+    // Apply temporarily
+    noBtn.style.left = `${clampedX}px`;
+    noBtn.style.top  = `${clampedY}px`;
 
-  noBtn.style.left = `${clampedX}px`;
-  noBtn.style.top  = `${clampedY}px`;
+    // Now measure overlap in viewport coords (reliable)
+    const noRect = noBtn.getBoundingClientRect();
+    const yesRect = yesBtn.getBoundingClientRect();
 
+    // Add a small safety gap so they don't touch
+    const gap = 6;
+    const noRectWithGap = {
+      left: noRect.left - gap,
+      right: noRect.right + gap,
+      top: noRect.top - gap,
+      bottom: noRect.bottom + gap
+    };
+
+    if (!rectsOverlap(noRectWithGap, yesRect)) {
+      hint.textContent = "😛💩🤡";
+      return; // success
+    }
+  }
+
+  // If we can't find a valid spot (rare), reset to home
+  noBtn.style.left = `${noHome.left}px`;
+  noBtn.style.top = `${noHome.top}px`;
   hint.textContent = "😛💩🤡";
 }
-
 
 ///   hint.textContent = "😛💩🤡";
 
