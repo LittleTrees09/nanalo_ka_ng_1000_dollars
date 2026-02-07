@@ -7,23 +7,27 @@ function rand(min, max) {
 }
 
 function moveNoButton() {
-  // Move within viewport bounds
-  const padding = 8;
+  const container = document.getElementById("card");
+  const padding = 16;
+
+  // IMPORTANT: position relative container + absolute button
+  container.style.position = "relative";
+  noBtn.style.position = "absolute";
+
+  const cRect = container.getBoundingClientRect();
   const btnRect = noBtn.getBoundingClientRect();
 
-  const maxX = window.innerWidth - btnRect.width - padding;
-  const maxY = window.innerHeight - btnRect.height - padding;
+  const maxX = cRect.width - btnRect.width - padding;
+  const maxY = cRect.height - btnRect.height - padding;
 
-  const x = rand(padding, maxX);
-  const y = rand(padding, maxY);
+  const x = rand(padding, Math.max(padding, maxX));
+  const y = rand(padding, Math.max(padding, maxY));
 
-  noBtn.style.position = "fixed";
   noBtn.style.left = `${x}px`;
   noBtn.style.top = `${y}px`;
 
   hint.textContent = "😛💩🤡";
 }
-
 
 ///   hint.textContent = "😛💩🤡";
 
