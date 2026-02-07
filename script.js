@@ -7,19 +7,11 @@ function rand(min, max) {
 }
 
 function moveNoButton() {
-  const container = document.getElementById("card");
+  const container = document.getElementById("card"); // or document.querySelector(".card")
   const padding = 12;
 
+  // Ensure the button is positioned relative to the card
   noBtn.style.position = "absolute";
-
-  // Initialize start position once
-  if (!start.initialized) {
-    const cRect = container.getBoundingClientRect();
-    const bRect = noBtn.getBoundingClientRect();
-    start.left = bRect.left - cRect.left;
-    start.top  = bRect.top  - cRect.top;
-    start.initialized = true;
-  }
 
   const cRect = container.getBoundingClientRect();
   const bRect = noBtn.getBoundingClientRect();
@@ -27,23 +19,15 @@ function moveNoButton() {
   const maxX = cRect.width - bRect.width - padding;
   const maxY = cRect.height - bRect.height - padding;
 
-  const radius = 90; // adjust: smaller = tighter movement
-
-  const x = Math.min(
-    Math.max(start.left + rand(-radius, radius), padding),
-    Math.max(padding, maxX)
-  );
-
-  const y = Math.min(
-    Math.max(start.top + rand(-radius, radius), padding),
-    Math.max(padding, maxY)
-  );
+  const x = rand(padding, Math.max(padding, maxX));
+  const y = rand(padding, Math.max(padding, maxY));
 
   noBtn.style.left = `${x}px`;
   noBtn.style.top = `${y}px`;
 
-  hint.textContent = "Nice try 😄";
+  hint.textContent = "Nice try 🤪";
 }
+
 
 
 function confettiBurst(count = 120) {
