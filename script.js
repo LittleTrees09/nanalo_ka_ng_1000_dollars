@@ -7,43 +7,74 @@ function rand(min, max) {
 }
 
 function moveNoButton() {
-  const container = document.getElementById("card");
-  const padding = 12;
+  const area = document.querySelector(".buttons"); // movement area
+  const padding = 10;
 
+  // Make No button move inside the area box
   noBtn.style.position = "absolute";
 
-  // Initialize start position once
-  if (!start.initialized) {
-    const cRect = container.getBoundingClientRect();
-    const bRect = noBtn.getBoundingClientRect();
-    start.left = bRect.left - cRect.left;
-    start.top  = bRect.top  - cRect.top;
-    start.initialized = true;
+  const areaRect = area.getBoundingClientRect();
+
+  // Ensure layout has applied absolute positioning context
+  const yesRectV = yesBtn.getBoundingClientRect();
+  const noRectV = noBtn.getBoundingClientRect();
+
+  // Size (use current rendered size)
+  const noW = noRectV.width;
+  const noH = noRectV.height;
+
+  // Helper: check overlap between two rects in "area-local" coordinates
+  function overlaps(ax, ay, aw, ah, bx, by, bw, bh) {
+    return !(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay);
   }
 
-  const cRect = container.getBoundingClientRect();
-  const bRect = noBtn.getBoundingClientRect();
+  // Yes button rectangle in area-local coords
+  const yesX = yesRectV.left - areaRect.left;
+  const yesY = yesRectV.top - areaRect.top;
+  const yesW = yesRectV.width;
+  const yesH = yesRectV.height;
 
-  const maxX = cRect.width - bRect.width - padding;
-  const maxY = cRect.height - bRect.height - padding;
+  const maxX = areaRect.width - noW - padding;
+  const maxY = areaRect.height - noH - padding;
 
-  const radius = 90; // adjust: smaller = tighter movement
+  // Try multiple random placements until we find one that doesn't overlap Yes
+  let placed = false;
+  for (let i = 0; i < 50; i++) {
+    const x = rand(padding, Math.max(padding, maxX));
+    const y = rand(padding, Math.max(padding, maxY));
 
-  const x = Math.min(
-    Math.max(start.left + rand(-radius, radius), padding),
-    Math.max(padding, maxX)
-  );
+    // Add a small safety gap so they don't touch
+    const gap = 8;
 
-  const y = Math.min(
-    Math.max(start.top + rand(-radius, radius), padding),
-    Math.max(padding, maxY)
-  );
+    const noBoxX = x - gap;
+    const noBoxY = y - gap;
+    const noBoxW = noW + gap * 2;
+    const noBoxH = noH + gap * 2;
 
-  noBtn.style.left = `${x}px`;
-  noBtn.style.top = `${y}px`;
+    if (!overlaps(noBoxX, noBoxY, noBoxW, noBoxH, yesX, yesY, yesW, yesH)) {
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top = `${y}px`;
+      placed = true;
+      break;
+    }
+  }
+
+  // Fallback: if area is too small, shove No to the far side away from Yes
+  if (!placed) {
+    const xLeft = padding;
+    const xRight = Math.max(padding, maxX);
+    const yMid = Math.min(Math.max(padding, (areaRect.height - noH) / 2), Math.max(padding, maxY));
+
+    // Choose side farther from Yes
+    const distLeft = Math.abs(xLeft - yesX);
+    const distRight = Math.abs(xRight - yesX);
+    noBtn.style.left = `${distRight > distLeft ? xRight : xLeft}px`;
+    noBtn.style.top = `${yMid}px`;
+  }
 
   hint.textContent = "😛💩🤡";
 }
+
 
 
 ///   hint.textContent = "😛💩🤡";
