@@ -26,7 +26,6 @@ function nudgeNoButton(dx) {
   const bw = rect.width;
   const bh = rect.height;
 
-  // If left/top haven't been set yet, start from current rendered position
   const currentLeft = Number.parseFloat(noBtn.style.left);
   const currentTop = Number.parseFloat(noBtn.style.top);
   const x0 = Number.isFinite(currentLeft) ? currentLeft : rect.left;
@@ -51,7 +50,7 @@ function lockNoButton() {
 }
 
 function onNoHover() {
-  const step = 40; // adjust to taste
+  const step = 40;
 
   if (noMoveCount === 0) {
     noMoveCount++;
@@ -89,14 +88,13 @@ function confettiBurst(count = 120) {
     c.style.transform = `rotate(${rand(0, 360)}deg)`;
     c.style.width = `${rand(6, 12)}px`;
     c.style.height = `${rand(8, 16)}px`;
-    c.style.zIndex = "9999"; // keep above overlay
+    c.style.zIndex = "9999";
     document.body.appendChild(c);
     setTimeout(() => c.remove(), 1600);
   }
 }
 
 function buildMoviePickerMarkup() {
-  // placeholders (edit these)
   const movies = [
     "insert movie 1",
     "insert movie 2",
@@ -129,7 +127,6 @@ function buildMoviePickerMarkup() {
   `;
 }
 
-// Global YES flow so gorilla.html can reuse it
 window.runYesFlow = function runYesFlow() {
   confettiBurst();
 
@@ -142,13 +139,11 @@ window.runYesFlow = function runYesFlow() {
 
   const card = document.getElementById("card");
 
-  // index.html: update existing card
   if (card) {
     card.innerHTML = successMarkup + buildMoviePickerMarkup();
     return;
   }
 
-  // gorilla.html: hide gorilla image + show overlay (don’t wipe body or confetti dies)
   const gorillaWrap = document.querySelector(".gorilla-wrap");
   if (gorillaWrap) gorillaWrap.style.display = "none";
 
@@ -190,21 +185,42 @@ function hookYesButtonOnce(btn) {
   btn.addEventListener("click", fireOnce, { once: true });
 }
 
-// Hook YES buttons if present
 hookYesButtonOnce(yesBtn);
 hookYesButtonOnce(document.getElementById("gorillaYes"));
 
-// Hook NO only on main page
 if (noBtn) {
   noBtn.addEventListener("mouseenter", onNoHover);
   noBtn.addEventListener("click", onNoClick);
 }
 
-// ---------------- Save movie choice to Google Sheets (GET, reliable) ----------------
-// ---------------- Save movie choice to Google Sheets (reliable logging) ----------------
+// ---------------- Save movie choice to Google Sheets (JSONP, works on GitHub) ----------------
+function saveMovieJSONP(movie, onDone) {
+  const cbName = `__movieCB_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+
+  // callback called by Apps Script
+  window[cbName] = (data) => {
+    try { onDone(null, data); } finally {
+      delete window[cbName];
+      script.remove();
+    }
+  };
+
+  const script = document.createElement("script");
+  const url =
+    `${GOOGLE_ENDPOINT}?movie=${encodeURIComponent(movie)}&callback=${encodeURIComponent(cbName)}`;
+
+  script.src = url;
+  script.onerror = () => {
+    delete window[cbName];
+    script.remove();
+    onDone(new Error("JSONP load failed"), null);
+  };
+
+  document.body.appendChild(script);
+}
+
 document.addEventListener("submit", (e) => {
   if (e.target?.id !== "movieForm") return;
-
   e.preventDefault();
 
   const form = e.target;
@@ -216,38 +232,26 @@ document.addEventListener("submit", (e) => {
     return;
   }
 
-  // lock so she can only choose once
   if (form.dataset.submitted === "1") return;
   form.dataset.submitted = "1";
   form.querySelectorAll("input, button").forEach((el) => (el.disabled = true));
 
-  // Send as x-www-form-urlencoded
-  const payload = new URLSearchParams({ movie: picked.value }).toString();
+  saveMovieJSONP(picked.value, (err, data) => {
+    if (err) {
+      if (movieHint) movieHint.textContent = "Not saved: endpoint error.";
+      form.dataset.submitted = "0";
+      form.querySelectorAll("input, button").forEach((el) => (el.disabled = false));
+      return;
+    }
 
-  // ✅ Best-effort logging that works on GitHub Pages
-  let sent = false;
+    if (data && data.ok === true) {
+      if (movieHint) movieHint.textContent = `Saved! You picked: ${picked.value} 💖`;
+      return;
+    }
 
-  // 1) sendBeacon (most reliable for logging)
-  if (navigator.sendBeacon) {
-    const blob = new Blob([payload], {
-      type: "application/x-www-form-urlencoded;charset=UTF-8",
-    });
-    sent = navigator.sendBeacon(GOOGLE_ENDPOINT, blob);
-  }
-
-  // 2) fallback: fetch no-cors (doesn't throw unless network totally fails)
-  if (!sent) {
-    fetch(GOOGLE_ENDPOINT, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      },
-      body: payload,
-    }).catch(() => {});
-  }
-
-  // We cannot reliably read the response due to CORS, so show success after sending.
-  if (movieHint) movieHint.textContent = `Saved! You picked: ${picked.value} 💖`;
+    if (movieHint) movieHint.textContent = `Not saved: ${data?.error || "unknown error"}`;
+    form.dataset.submitted = "0";
+    form.querySelectorAll("input, button").forEach((el) => (el.disabled = false));
+  });
 });
 
