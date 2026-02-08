@@ -92,6 +92,10 @@ function confettiBurst(count = 120) {
     c.style.transform = `rotate(${rand(0, 360)}deg)`;
     c.style.width = `${rand(6, 12)}px`;
     c.style.height = `${rand(8, 16)}px`;
+
+    // ✅ ensure confetti stays visible above everything (especially on gorilla page)
+    c.style.zIndex = "9999";
+
     document.body.appendChild(c);
     setTimeout(() => c.remove(), 1600);
   }
@@ -109,11 +113,35 @@ window.runYesFlow = function runYesFlow() {
   `;
 
   const card = document.getElementById("card");
+
+  // ✅ index.html behavior: just update the existing card (confetti stays)
   if (card) {
     card.innerHTML = successMarkup;
-  } else {
-    document.body.innerHTML = `<main class="card" style="margin:20px;">${successMarkup}</main>`;
+    return;
   }
+
+  // ✅ gorilla.html behavior: DO NOT wipe body (that kills confetti)
+  // Hide the gorilla container if present
+  const gorillaWrap = document.querySelector(".gorilla-wrap");
+  if (gorillaWrap) gorillaWrap.style.display = "none";
+
+  // Add an overlay card on top
+  let overlay = document.getElementById("successOverlay");
+  if (!overlay) {
+    overlay = document.createElement("main");
+    overlay.id = "successOverlay";
+    overlay.className = "card";
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.margin = "auto";
+    overlay.style.height = "fit-content";
+    overlay.style.maxWidth = "min(520px, 92vw)";
+    overlay.style.zIndex = "9000";
+    overlay.style.display = "block";
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = successMarkup;
 };
 
 // ---------------- One-press YES (pointerdown to avoid "double click") ----------------
@@ -150,4 +178,3 @@ if (noBtn) {
   noBtn.addEventListener("mouseenter", onNoHover);
   noBtn.addEventListener("click", onNoClick);
 }
-
