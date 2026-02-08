@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Okay, press Yes 😈</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- ✅ Load the same script so gorilla YES uses the original YES behavior -->
+  <script src="script.js" defer></script>
+
+  <style>
+    /* Override the normal card layout for this page */
+    body { place-items: center; }
+
+    .gorilla-wrap {
+      position: relative;
+      width: min(520px, 92vw);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+
+    .gorilla-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Place the YES button on the finger */
+    .gorilla-yes {
+      position: absolute;
+      left: 40%;
+      top: 55%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="gorilla-wrap">
+    <img src="gorilla.jpg" alt="gorilla" />
+    <button class="btn yes gorilla-yes" id="gorillaYes">YES 💖</button>
+  </div>
+
+  <!-- No inline click handler needed anymore.
+       script.js will auto-hook #gorillaYes and run the original YES flow. -->
+</body>
+</html>
+

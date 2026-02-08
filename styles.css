@@ -7,6 +7,7 @@
 }
 
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -17,6 +18,28 @@ body {
   place-items: center;
   overflow: hidden;
 }
+
+/* ✅ NO button movement boundary (tune these values) */
+#noArea {
+  position: fixed;
+
+  /* Adjust these 4 to match your drawn box */
+  top: 70px;
+  left: 90px;
+  right: 160px;
+  bottom: 90px;
+
+  /* Keep it invisible and non-interactive */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Debug (optional): enable to see the area while tuning */
+/*
+#noArea {
+  outline: 3px dashed rgba(255, 0, 0, 0.8);
+}
+*/
 
 .card {
   width: min(520px, 92vw);
