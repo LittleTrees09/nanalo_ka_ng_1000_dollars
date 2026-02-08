@@ -21,7 +21,7 @@ function moveNoButton() {
   noBtn.style.left = `${x}px`;
   noBtn.style.top = `${y}px`;
 
-  hint.textContent = "Nice try 😄";
+  hint.textContent = "Anong kala mo ha 😜";
 }
 
 function confettiBurst(count = 120) {
@@ -43,9 +43,9 @@ yesBtn.addEventListener("click", () => {
   confettiBurst();
   document.getElementById("card").innerHTML = `
     <div class="emoji" aria-hidden="true">🥰</div>
-    <h1>YAYYYYY!!!</h1>
+    <h1>YAYYYYY~~</h1>
     <p class="sub">See you on Valentine’s 💖</p>
-    <p style="opacity:.85;margin-top:16px;">(Screenshot this and send it to me 😌)</p>
+    <p style="opacity:.85;margin-top:16px;">(hihi, pa-send ng screenshot nito, Mahal~ ayayu!!!😌)</p>
   `;
 });
 
