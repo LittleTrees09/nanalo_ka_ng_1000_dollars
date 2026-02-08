@@ -21,7 +21,7 @@ function moveNoButton() {
   noBtn.style.left = `${x}px`;
   noBtn.style.top = `${y}px`;
 
-  hint.textContent = "😝💩🤡";
+  hint.textContent = "Nice try 😄";
 }
 
 function confettiBurst(count = 120) {
@@ -43,11 +43,12 @@ yesBtn.addEventListener("click", () => {
   confettiBurst();
   document.getElementById("card").innerHTML = `
     <div class="emoji" aria-hidden="true">🥰</div>
-    <h1>YAYYYYY~~</h1>
+    <h1>YAYYYYY!!!</h1>
     <p class="sub">See you on Valentine’s 💖</p>
-    <p style="opacity:.85;margin-top:16px;">(Hihi, pa-send naman ng screenshot nito~ ayayu!!!)</p>
+    <p style="opacity:.85;margin-top:16px;">(Screenshot this and send it to me 😌)</p>
   `;
 });
 
 noBtn.addEventListener("mouseenter", moveNoButton);
 noBtn.addEventListener("click", moveNoButton); // mobile fallback
+
