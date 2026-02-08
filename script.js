@@ -6,6 +6,9 @@ function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+let noMoveCount = 0;
+const NO_MOVE_LIMIT = 2;
+
 function moveNoButton() {
   // Move within viewport bounds
   const padding = 16;
@@ -14,14 +17,42 @@ function moveNoButton() {
   const maxX = window.innerWidth - btnRect.width - padding;
   const maxY = window.innerHeight - btnRect.height - padding;
 
-  const x = rand(padding, maxX);
-  const y = rand(padding, maxY);
+  const x = rand(padding, Math.max(padding, maxX));
+  const y = rand(padding, Math.max(padding, maxY));
 
   noBtn.style.position = "fixed";
   noBtn.style.left = `${x}px`;
   noBtn.style.top = `${y}px`;
+}
 
-  hint.textContent = "Anong kala mo ha 😜";
+function lockNoButton() {
+  // Stop dodging; allow pressing.
+  noBtn.removeEventListener("mouseenter", onNoHover);
+  hint.textContent = "Sige, pwede mo na pindutin 😈";
+}
+
+function onNoHover() {
+  if (noMoveCount < NO_MOVE_LIMIT) {
+    noMoveCount++;
+    moveNoButton();
+    hint.textContent = `Anong kala mo ha 😜 (${noMoveCount}/${NO_MOVE_LIMIT})`;
+
+    if (noMoveCount === NO_MOVE_LIMIT) {
+      lockNoButton();
+    }
+  }
+}
+
+function onNoClick(e) {
+  // Before limit: click acts as a "mobile fallback" dodge
+  if (noMoveCount < NO_MOVE_LIMIT) {
+    e.preventDefault();
+    onNoHover();
+    return;
+  }
+
+  // After limit: clicking NO redirects to gorilla page
+  window.location.href = "gorilla.html";
 }
 
 function confettiBurst(count = 120) {
@@ -49,6 +80,5 @@ yesBtn.addEventListener("click", () => {
   `;
 });
 
-noBtn.addEventListener("mouseenter", moveNoButton);
-noBtn.addEventListener("click", moveNoButton); // mobile fallback
-
+noBtn.addEventListener("mouseenter", onNoHover);
+noBtn.addEventListener("click", onNoClick);
